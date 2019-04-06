@@ -1,0 +1,36 @@
+{
+  "name": "spark",
+  "version": "1.0.0",
+  "description": "A Discord bot that does something",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prod": "node --no-deprecation main.js"
+  },
+  "author": "rjt",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "discord.js-commando": "^0.10.0",
+    "fancy-log": "^1.3.3",
+    "json-bigint": "^0.3.0",
+    "stringify-object": "^3.3.0"
+  },
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "pm2": "^3.4.1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rjt-rockx/sapphyr.git"
+  },
+  "keywords": [
+    "nodejs",
+    "discord",
+    "bot"
+  ],
+  "bugs": {
+    "url": "https://github.com/rjt-rockx/sapphyr/issues"
+  },
+  "homepage": "https://github.com/rjt-rockx/sapphyr#readme"
+}
