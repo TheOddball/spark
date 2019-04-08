@@ -6,7 +6,7 @@ module.exports = class ApplicationChannel extends Command {
 			name: "applicationchannel",
 			memberName: "applicationchannel",
 			group: "applications",
-			description: "Get, set or remove the channel to repost applications to in this guild.",
+			description: "Get, set or remove the channel to react with approval/denial reactions in this guild.",
 			aliases: ["appch"],
 			userPermissions: ["MANAGE_CHANNELS"],
 			args: [
@@ -19,7 +19,7 @@ module.exports = class ApplicationChannel extends Command {
 				},
 				{
 					key: "channel",
-					prompt: "Channel to repost applications in",
+					prompt: "Channel to react in",
 					type: "channel",
 					default: ""
 				}
