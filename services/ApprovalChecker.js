@@ -18,9 +18,6 @@ module.exports = class ApprovalChecker extends BaseService {
 	async onMessageReactionAdd(ctx) {
 		if (!ctx.guild) return;
 
-		let pendingApplications = ctx.guild.settings.get("pendingApplications", []);
-		if (!pendingApplications.find(id => id === ctx.message.id)) return;
-
 		const approverRole = ctx.guild.settings.get("approverRole");
 		if (!approverRole || !ctx.guild.roles.has(approverRole) || !ctx.member.roles.has(approverRole)) return;
 
@@ -98,9 +95,6 @@ module.exports = class ApprovalChecker extends BaseService {
 			],
 			color: ctx.reaction.emoji.toString() === "✅" ? DiscordColors.GREEN : DiscordColors.RED
 		}));
-
-		pendingApplications = pendingApplications.filter(id => id !== ctx.message.id);
-		ctx.guild.settings.set("pendingApplications", pendingApplications);
 	}
 
 	async onMessage(ctx) {
@@ -121,9 +115,5 @@ module.exports = class ApprovalChecker extends BaseService {
 
 		await ctx.message.react("✅");
 		await ctx.message.react("❌");
-
-		const pendingApplications = ctx.guild.settings.get("pendingApplications", []);
-		pendingApplications.push[ctx.message.id];
-		ctx.guild.settings.set("pendingApplications", pendingApplications);
 	}
 };
