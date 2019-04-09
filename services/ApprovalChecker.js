@@ -1,6 +1,10 @@
-const BaseService = require("../helpers/BaseService.js");
+
 const { RichEmbed } = require("discord.js");
+const BaseService = require("../helpers/BaseService.js");
 const DiscordColors = require("../helpers/DiscordColors.js");
+const StorageHelper = require("../helpers/StorageHelper.js");
+const storage = new StorageHelper();
+const properRoundToTwo = num => +(Math.round(num + "e+2") + "e-2");
 
 module.exports = class ApprovalChecker extends BaseService {
 	constructor(client) {
@@ -13,6 +17,9 @@ module.exports = class ApprovalChecker extends BaseService {
 
 	async onMessageReactionAdd(ctx) {
 		if (!ctx.guild) return;
+
+		let pendingApplications = ctx.guild.settings.get("pendingApplications", []);
+		if (!pendingApplications.find(id => id === ctx.message.id)) return;
 
 		const approverRole = ctx.guild.settings.get("approverRole");
 		if (!approverRole || !ctx.guild.roles.has(approverRole) || !ctx.member.roles.has(approverRole)) return;
@@ -29,7 +36,36 @@ module.exports = class ApprovalChecker extends BaseService {
 
 		if (!["✅", "❌"].includes(ctx.reaction.emoji.toString())) return;
 
-		// TODO: Attachments
+		const attachmentFields = [], uploadedAttachments = [];
+
+		for (const [attachmentId, attachment] of ctx.message.attachments) {
+			if (attachment) {
+				const url = await storage.uploadAttachment(attachment);
+				uploadedAttachments.push({ name: attachment.filename, size: attachment.filesize, url });
+			}
+		}
+
+		if (uploadedAttachments.length > 0) {
+			let currentField = 0, totalText = "";
+			const links = uploadedAttachments.map(({ name, size, url }) => `[${name.length >= 30 ? name.substring(0, 27) + "..." : name} (${properRoundToTwo(size / (1024 * 1024))} MB)](${url})`);
+			for (const link of links) {
+				if ((totalText + link + "\n").length <= 1024)
+					totalText += link + "\n";
+				if ((totalText + link + "\n").length > 1024) {
+					attachmentFields.push({
+						name: `Attachments${currentField > 0 ? " (contd.)" : ""}`,
+						value: totalText
+					});
+					currentField += 1;
+					totalText = "";
+				}
+			}
+			if (totalText)
+				attachmentFields.push({
+					name: `Attachments${currentField > 0 ? " (contd.)" : ""}`,
+					value: totalText
+				});
+		}
 
 		await ctx.message.delete();
 
@@ -38,10 +74,13 @@ module.exports = class ApprovalChecker extends BaseService {
 			author: { name: `Your application was ${ctx.reaction.emoji.toString() === "✅" ? "approved" : "denied"}!` },
 			title: "Message Content",
 			description: ctx.message.cleanContent || "[No message content]",
-			fields: [{
-				name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
-				value: ctx.user.toString()
-			}],
+			fields: [
+				{
+					name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
+					value: ctx.user.toString()
+				},
+				...attachmentFields
+			],
 			color: ctx.reaction.emoji.toString() === "✅" ? DiscordColors.GREEN : DiscordColors.RED
 		}));
 
@@ -50,16 +89,22 @@ module.exports = class ApprovalChecker extends BaseService {
 			author: { name: `Application successfully ${ctx.reaction.emoji.toString() === "✅" ? "approved" : "denied"}.` },
 			title: "Message Content",
 			description: ctx.message.cleanContent || "[No message content]",
-			fields: [{
-				name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
-				value: ctx.user.toString()
-			}],
+			fields: [
+				{
+					name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
+					value: ctx.user.toString()
+				},
+				...attachmentFields
+			],
 			color: ctx.reaction.emoji.toString() === "✅" ? DiscordColors.GREEN : DiscordColors.RED
 		}));
+
+		pendingApplications = pendingApplications.filter(id => id !== ctx.message.id);
+		ctx.guild.settings.set("pendingApplications", pendingApplications);
 	}
 
 	async onMessage(ctx) {
-		if (!ctx.guild) return;
+		if (!ctx.guild || ctx.user.bot) return;
 
 		const approverRole = ctx.guild.settings.get("approverRole");
 		if (!approverRole || !ctx.guild.roles.has(approverRole)) return;
@@ -76,5 +121,9 @@ module.exports = class ApprovalChecker extends BaseService {
 
 		await ctx.message.react("✅");
 		await ctx.message.react("❌");
+
+		const pendingApplications = ctx.guild.settings.get("pendingApplications", []);
+		pendingApplications.push[ctx.message.id];
+		ctx.guild.settings.set("pendingApplications", pendingApplications);
 	}
 };
