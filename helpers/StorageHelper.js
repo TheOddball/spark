@@ -25,7 +25,7 @@ module.exports = class StorageHelper {
 			got.stream(attachment.url)
 				.pipe(file.createWriteStream())
 				.on("error", err => reject(err))
-				.on("finish", resolve(`https://storage.googleapis.com/${this.bucket.name}/${uploadName}`))
+				.on("finish", resolve(`https://i.designerlist.guide/${uploadName}`))
 		);
 	}
 
