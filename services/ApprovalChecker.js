@@ -1,5 +1,6 @@
 const BaseService = require("../helpers/BaseService.js");
 const { RichEmbed } = require("discord.js");
+const DiscordColors = require("../helpers/DiscordColors.js");
 
 module.exports = class ApprovalChecker extends BaseService {
 	constructor(client) {
@@ -40,7 +41,8 @@ module.exports = class ApprovalChecker extends BaseService {
 			fields: [{
 				name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
 				value: ctx.user.toString()
-			}]
+			}],
+			color: ctx.reaction.emoji.toString() === "✅" ? DiscordColors.GREEN : DiscordColors.RED
 		}));
 
 		ctx.guild.channels.get(archiveChannel).send(new RichEmbed({
@@ -51,7 +53,8 @@ module.exports = class ApprovalChecker extends BaseService {
 			fields: [{
 				name: `${ctx.reaction.emoji.toString() === "✅" ? "Approved" : "Denied"} by`,
 				value: ctx.user.toString()
-			}]
+			}],
+			color: ctx.reaction.emoji.toString() === "✅" ? DiscordColors.GREEN : DiscordColors.RED
 		}));
 	}
 
